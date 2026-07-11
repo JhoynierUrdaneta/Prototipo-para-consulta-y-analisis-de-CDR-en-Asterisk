@@ -1,15 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
-from dotenv import load_dotenv
-import httpx
 
-load_dotenv()
+from app.routers import llamadas, kpi, agentes, campanias, chat
 
 app = FastAPI(
-    title="CDR VoIP API",
-    description="API para consulta y análisis de registros CDR con IA",
-    version="1.0.0"
+    title="Estadis-Call API",
+    description="API para consulta y análisis de CDR con IA — BPO Barranquilla",
+    version="2.0.0"
 )
 
 app.add_middleware(
@@ -20,53 +17,56 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+app.include_router(llamadas.router,  prefix="/llamadas",  tags=["Llamadas"])
+app.include_router(kpi.router,       prefix="/kpi",       tags=["KPI"])
+app.include_router(agentes.router,   prefix="/agentes",   tags=["Agentes"])
+app.include_router(campanias.router, prefix="/campanias", tags=["Campañas"])
+app.include_router(chat.router,      prefix="/chat",      tags=["Chat IA"])
 
-def get_headers():
-    return {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}"
-    }
 
-@app.get("/")
+@app.get("/", tags=["Health"])
 def root():
-    return {"mensaje": "API CDR VoIP funcionando correctamente"}
+    return {"mensaje": "Estadis-Call API funcionando correctamente", "version": "2.0.0"}
 
-@app.get("/cdr")
-async def get_cdr():
+
+@app.get("/resumen", tags=["Health"])
+async def get_resumen():
+    """Resumen general de la operación del día"""
+    from app.services.supabase import fetch
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SUPABASE_URL}/rest/v1/cdr?order=calldate.desc&limit=100",
-                headers=get_headers()
-            )
-            return {"data": response.json(), "total": len(response.json())}
+        data = await fetch("v_resumen_hoy")
+        return data
     except Exception as e:
         return {"error": str(e)}
 
-@app.get("/cdr/stats")
+
+@app.get("/stats", tags=["Health"])
 async def get_stats():
+    """Indicadores estadísticos generales del tráfico de llamadas"""
+    from app.services.supabase import fetch
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{SUPABASE_URL}/rest/v1/cdr?select=disposition,billsec",
-                headers=get_headers()
-            )
-            data = response.json()
-            total = len(data)
-            contestadas = len([r for r in data if r.get("disposition") == "ANSWERED"])
-            no_contestadas = len([r for r in data if r.get("disposition") == "NO ANSWER"])
-            ocupadas = len([r for r in data if r.get("disposition") == "BUSY"])
-            duracion_promedio = round(
-                sum(r.get("billsec", 0) for r in data) / total if total > 0 else 0, 2
-            )
-            return {
-                "total_llamadas": total,
-                "contestadas": contestadas,
-                "no_contestadas": no_contestadas,
-                "ocupadas": ocupadas,
-                "duracion_promedio": duracion_promedio
-            }
+        data = await fetch("llamadas", "select=estado_llamada,duracion_seg,costo,es_venta")
+        total = len(data)
+        contestadas  = len([x for x in data if x.get("estado_llamada") == "contestada"])
+        no_contesta  = len([x for x in data if x.get("estado_llamada") == "no_contesta"])
+        ocupado      = len([x for x in data if x.get("estado_llamada") == "ocupado"])
+        abandonadas  = len([x for x in data if x.get("estado_llamada") == "abandonada"])
+        ventas       = len([x for x in data if x.get("es_venta") is True])
+        duracion_prom = round(
+            sum(x.get("duracion_seg", 0) for x in data) / total if total > 0 else 0, 2
+        )
+        costo_total = round(
+            sum(float(x.get("costo", 0) or 0) for x in data), 2
+        )
+        return {
+            "total_llamadas":       total,
+            "contestadas":          contestadas,
+            "no_contesta":          no_contesta,
+            "ocupado":              ocupado,
+            "abandonadas":          abandonadas,
+            "ventas":               ventas,
+            "duracion_promedio_seg": duracion_prom,
+            "costo_total":          costo_total,
+        }
     except Exception as e:
         return {"error": str(e)}
