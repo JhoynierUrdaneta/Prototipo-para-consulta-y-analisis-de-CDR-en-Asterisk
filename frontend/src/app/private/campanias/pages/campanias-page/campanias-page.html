@@ -1,0 +1,72 @@
+<div class="pg-header">
+  <div>
+    <div class="pg-title">Campañas activas</div>
+    <div class="pg-sub">{{ campanias().length }} campañas · {{ activas() }} activas</div>
+  </div>
+  <button class="btn btn-outline" type="button" [disabled]="cargando()" (click)="exportarExcel()">
+    ⬇ Exportar
+  </button>
+</div>
+
+<div class="pg-body">
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  } @else if (cargando()) {
+    <p class="pg-sub">Cargando campañas…</p>
+  } @else if (campanias().length === 0) {
+    <div class="card empty-state">
+      <div class="ic">📣</div>
+      <h3>No hay campañas activas</h3>
+    </div>
+  } @else {
+    <div class="camp-grid">
+      @for (c of campanias(); track c.codigo) {
+        <div class="camp-card">
+          <div class="camp-top">
+            <div>
+              <div class="camp-codigo">{{ c.codigo }}</div>
+              <div class="camp-nombre">{{ c.nombre }}</div>
+              <div class="camp-tipo">{{ c.tipo_campania }} · {{ c.modalidad }}</div>
+            </div>
+            <span class="pill" [class]="c.estado === 'activa' ? 'green' : 'gray'">
+              {{ c.estado === 'activa' ? 'Activa' : c.estado }}
+            </span>
+          </div>
+
+          <div class="progress-wrap">
+            <div class="progress-lbl">
+              <span>Progreso del día</span>
+              <span>{{ c.llamadas }} / {{ c.meta_llamadas_dia }} meta</span>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill"
+                [class]="'fill-' + colorProgreso(c)"
+                [style.width.%]="progresoPct(c)"
+              ></div>
+            </div>
+          </div>
+
+          <div class="camp-metrics">
+            <div>
+              <div class="cm-lbl">Llamadas</div>
+              <div class="cm-val">{{ c.llamadas }}</div>
+            </div>
+            <div>
+              <div class="cm-lbl">Contacto</div>
+              <div class="cm-val">{{ c.pct_contacto }}%</div>
+            </div>
+            <div>
+              <div class="cm-lbl">Ventas</div>
+              <div class="cm-val" [class.venta]="c.ventas > 0">{{ c.ventas }}</div>
+            </div>
+            <div>
+              <div class="cm-lbl">TMO</div>
+              <div class="cm-val">{{ c.tmo_seg }}s</div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

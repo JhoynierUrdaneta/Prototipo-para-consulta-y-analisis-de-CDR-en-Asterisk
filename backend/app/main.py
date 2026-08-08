@@ -18,6 +18,7 @@ from .routers import (
     export,
     informes,
     internal,
+    panel,
     usuarios,
 )
 from .seed import seed_dashboards, seed_usuarios
@@ -71,6 +72,7 @@ app.include_router(dashboards.router)
 app.include_router(export.router)
 app.include_router(informes.router)
 app.include_router(internal.router)
+app.include_router(panel.router)
 
 
 @app.get("/api/health")

@@ -14,6 +14,16 @@ export const privateRoutes: Routes = [
           import('./panel/pages/panel-page/panel-page').then((m) => m.PanelPage),
       },
       {
+        path: 'agentes',
+        loadComponent: () =>
+          import('./agentes/pages/agentes-page/agentes-page').then((m) => m.AgentesPage),
+      },
+      {
+        path: 'campanias',
+        loadComponent: () =>
+          import('./campanias/pages/campanias-page/campanias-page').then((m) => m.CampaniasPage),
+      },
+      {
         path: 'consultar',
         loadComponent: () =>
           import('./consultar/pages/consultar-page/consultar-page').then((m) => m.ConsultarPage),

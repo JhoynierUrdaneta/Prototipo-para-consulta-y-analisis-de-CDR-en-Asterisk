@@ -1,0 +1,79 @@
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.agent-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.agent-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.agent-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.agent-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.agent-code {
+  font-size: 11px;
+  color: var(--text-2);
+  font-family: var(--mono);
+}
+
+.agent-pill {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.agent-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.am-lbl {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-bottom: 2px;
+}
+
+.am-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+  font-family: var(--mono);
+
+  &.venta {
+    color: var(--green);
+  }
+}
+
+.venta {
+  color: var(--green);
+}

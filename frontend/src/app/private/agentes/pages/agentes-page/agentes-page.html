@@ -1,0 +1,119 @@
+<div class="pg-header">
+  <div>
+    <div class="pg-title">Estado de agentes</div>
+    <div class="pg-sub">
+      {{ agentes().length }} agentes ·
+      {{ conteoPorGrupo().get('Disponible') ?? 0 }} disponibles ·
+      {{ conteoPorGrupo().get('En llamada') ?? 0 }} en llamada
+    </div>
+  </div>
+</div>
+
+<div class="pg-body">
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  } @else if (cargando()) {
+    <p class="pg-sub">Cargando agentes…</p>
+  } @else {
+    <div class="filters">
+      <button class="filter-chip" [class.active]="filtroGrupo() === null" (click)="elegirGrupo(null)">
+        Todos ({{ agentes().length }})
+      </button>
+      @for (g of grupos; track g) {
+        <button
+          class="filter-chip"
+          [class.active]="filtroGrupo() === g"
+          (click)="elegirGrupo(g)"
+        >
+          {{ g }} ({{ conteoPorGrupo().get(g) ?? 0 }})
+        </button>
+      }
+      @for (c of campanias(); track c) {
+        <button
+          class="filter-chip"
+          [class.active]="filtroCampania() === c"
+          (click)="elegirCampania(c)"
+        >
+          📣 {{ c }}
+        </button>
+      }
+    </div>
+
+    @if (agentesFiltrados().length === 0) {
+      <div class="card empty-state">
+        <div class="ic">👥</div>
+        <h3>Ningún agente coincide con el filtro</h3>
+      </div>
+    } @else {
+      <div class="agent-grid">
+        @for (a of agentesFiltrados(); track a.id) {
+          <div class="agent-card">
+            <div class="agent-hdr">
+              <div class="agent-av" [style.background]="degradado(a.codigo_agente)">
+                {{ iniciales(a) }}
+              </div>
+              <div>
+                <div class="agent-name">{{ a.nombres }} {{ a.apellidos }}</div>
+                <div class="agent-code">
+                  {{ a.codigo_agente }}
+                  @if (a.campania_codigo) {
+                    · {{ a.campania_codigo }}
+                  }
+                </div>
+              </div>
+              <span class="pill agent-pill" [class]="colorEstadoAgente(grupoElegido(a))">
+                {{ a.estado }}
+              </span>
+            </div>
+            <div class="agent-metrics">
+              <div>
+                <div class="am-lbl">Llamadas</div>
+                <div class="am-val">{{ a.llamadas }}</div>
+              </div>
+              <div>
+                <div class="am-lbl">Ventas</div>
+                <div class="am-val" [class.venta]="a.ventas > 0">
+                  {{ a.ventas > 0 ? a.ventas : '—' }}
+                </div>
+              </div>
+              <div>
+                <div class="am-lbl">TMO</div>
+                <div class="am-val">{{ a.tmo_seg ? (a.tmo_seg | number: '1.0-0') + 's' : '—' }}</div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="card">
+      <div class="card-title">Top agentes por ventas hoy</div>
+      <div class="tbl-scroll">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Agente</th>
+              <th>Código</th>
+              <th>Equipo</th>
+              <th>Llamadas</th>
+              <th>Ventas</th>
+              <th>TMO</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of datos()?.top_ventas ?? []; track t.codigo_agente) {
+              <tr>
+                <td class="strong">{{ t.agente }}</td>
+                <td class="mono">{{ t.codigo_agente }}</td>
+                <td>{{ t.equipo }}</td>
+                <td class="mono">{{ t.llamadas }}</td>
+                <td class="mono venta">{{ t.ventas }}</td>
+                <td class="mono">{{ t.tmo_seg | number: '1.0-0' }}s</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

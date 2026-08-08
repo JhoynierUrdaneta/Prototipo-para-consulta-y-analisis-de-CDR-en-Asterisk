@@ -33,15 +33,22 @@ export class PrivateLayout {
   protected readonly usuario = this.auth.usuario;
   protected readonly iniciales = this.auth.iniciales;
 
-  // Los ítems Agentes / Campañas / Financiero del diseño llegarán cuando el
-  // backend exponga endpoints sobre v_kpi_agente_dia y v_kpi_campania_dia.
+  // Financiero queda pendiente: el mockup no trae esa pantalla dibujada, a
+  // diferencia de Dashboard/Agentes/Campañas que sí se implementaron completas.
   private readonly grupos: GrupoNav[] = [
     {
       titulo: 'Principal',
       items: [
-        { ruta: '/app', etiqueta: 'Panel', icono: '📊', exacto: true },
+        { ruta: '/app', etiqueta: 'Dashboard', icono: '📊', exacto: true },
         { ruta: '/app/consultar', etiqueta: 'Consultar IA', icono: '🤖', insignia: 'IA' },
         { ruta: '/app/tableros', etiqueta: 'Tableros', icono: '🗂️' },
+      ],
+    },
+    {
+      titulo: 'Operación',
+      items: [
+        { ruta: '/app/agentes', etiqueta: 'Agentes', icono: '👥' },
+        { ruta: '/app/campanias', etiqueta: 'Campañas', icono: '📣' },
       ],
     },
     {

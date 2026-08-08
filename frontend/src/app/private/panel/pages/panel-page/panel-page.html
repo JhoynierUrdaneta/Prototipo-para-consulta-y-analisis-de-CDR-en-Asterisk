@@ -1,7 +1,7 @@
 <div class="pg-header">
   <div>
     <div class="pg-title">Resumen operacional</div>
-    <div class="pg-sub">Estado general de tu acceso y de las integraciones</div>
+    <div class="pg-sub">Datos en vivo desde Supabase</div>
   </div>
 </div>
 
@@ -35,12 +35,98 @@
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">Cómo empezar</div>
-    <p class="pg-sub">
-      Ve a <strong>Consultar IA</strong> y pregunta en español por tus métricas; desde el resultado
-      puedes guardarlo en un <strong>Tablero</strong> o programarlo como <strong>Informe</strong>
-      por correo.
-    </p>
-  </div>
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  } @else if (cargando()) {
+    <p class="pg-sub">Cargando indicadores…</p>
+  } @else if (datos(); as d) {
+    <div class="g4">
+      @for (k of kpis(); track k.label) {
+        <div class="kpi" [class]="k.color">
+          <div class="kpi-icon">{{ k.icono }}</div>
+          <div class="kpi-label">{{ k.label }}</div>
+          <div class="kpi-val">{{ k.valor }}</div>
+        </div>
+      }
+    </div>
+
+    <div class="g31">
+      <div class="card">
+        <div class="card-title">
+          KPIs por campaña
+          <span class="card-sub">Hoy</span>
+        </div>
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Campaña</th>
+                <th>Llamadas</th>
+                <th>Contacto</th>
+                <th>Ventas</th>
+                <th>Costo</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of d.campanias; track trackCampania($index, c)) {
+                <tr>
+                  <td class="strong">{{ c.campania_codigo }}</td>
+                  <td class="mono">{{ fmt(c.llamadas) }}</td>
+                  <td>{{ c.pct_contacto }}%</td>
+                  <td class="mono" [class.venta]="c.ventas > 0">
+                    {{ c.ventas > 0 ? fmt(c.ventas) : '—' }}
+                  </td>
+                  <td class="mono">${{ fmt(Math.round(c.costo_total)) }}</td>
+                  <td><span class="pill green">{{ c.estado }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="columna-derecha">
+        <div class="card">
+          <div class="card-title">
+            Estado agentes
+            <span class="card-sub">Ahora</span>
+          </div>
+          <div class="lista-estados">
+            @for (e of d.estado_agentes; track e.estado) {
+              <div class="fila-estado">
+                <span class="etiqueta">
+                  <span class="punto" [class]="colorEstadoAgente(e.estado)"></span>
+                  {{ e.estado }}
+                </span>
+                <span class="valor mono" [class]="colorEstadoAgente(e.estado)">{{ e.total }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            Disposición
+            <span class="card-sub">Hoy</span>
+          </div>
+          <div class="bar-chart">
+            @for (item of d.disposicion; track item.estado_llamada) {
+              <div class="bar-row">
+                <div class="bar-lbl">{{ etiquetaEstadoLlamada(item.estado_llamada) }}</div>
+                <div class="bar-track">
+                  <div
+                    class="bar-fill"
+                    [class]="'fill-' + colorEstadoLlamada(item.estado_llamada)"
+                    [style.width.%]="pctDisposicion(item.total)"
+                  ></div>
+                </div>
+                <div class="bar-val">{{ pctDisposicion(item.total) }}%</div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>
