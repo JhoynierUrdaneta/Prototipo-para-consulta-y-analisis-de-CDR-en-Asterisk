@@ -1,0 +1,19 @@
+<div class="card">
+  <div class="card-title">
+    {{ widget().titulo }}
+    @if (resultado()) {
+      <button class="btn btn-outline btn-sm" type="button" (click)="exportarPdf()">⬇ PDF</button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  } @else if (resultado(); as r) {
+    <app-grafico [res]="r" />
+    @if (widget().insight) {
+      <p class="insight">💡 {{ widget().insight }}</p>
+    }
+  } @else {
+    <p class="cargando">Cargando…</p>
+  }
+</div>

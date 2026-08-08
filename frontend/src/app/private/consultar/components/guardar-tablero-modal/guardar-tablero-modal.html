@@ -1,0 +1,36 @@
+<div class="modal-backdrop" (click)="cerrar.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3>Guardar en tablero</h3>
+
+    @if (error()) {
+      <div class="msg-error">{{ error() }}</div>
+    }
+    @if (ok()) {
+      <div class="msg-ok">Guardado ✓</div>
+    }
+
+    <div class="cfg-field">
+      <label for="tablero">Tablero</label>
+      <select id="tablero" name="tablero" [(ngModel)]="seleccion">
+        <option value="nuevo">➕ Nuevo tablero…</option>
+        @for (d of propios(); track d.id) {
+          <option [value]="d.id">{{ d.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    @if (seleccion === 'nuevo') {
+      <div class="cfg-field">
+        <label for="nombre">Nombre del tablero</label>
+        <input id="nombre" name="nombre" [(ngModel)]="nombre" />
+      </div>
+    }
+
+    <div class="acciones">
+      <button class="btn btn-outline" type="button" (click)="cerrar.emit()">Cancelar</button>
+      <button class="btn btn-primary" type="button" [disabled]="guardando()" (click)="guardar()">
+        Guardar
+      </button>
+    </div>
+  </div>
+</div>

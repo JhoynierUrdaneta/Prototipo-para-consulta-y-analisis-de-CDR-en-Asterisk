@@ -1,0 +1,17 @@
+.izq {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.widgets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .widgets {
+    grid-template-columns: 1fr;
+  }
+}

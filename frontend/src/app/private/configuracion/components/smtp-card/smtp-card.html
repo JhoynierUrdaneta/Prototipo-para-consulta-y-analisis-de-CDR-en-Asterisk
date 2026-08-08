@@ -1,0 +1,75 @@
+<div class="card">
+  <div class="config-hdr">
+    <div class="ic" style="background: var(--accent-dim)">📧</div>
+    <div>
+      <h3>SMTP — Correo</h3>
+      <p>Envío de los informes programados por email</p>
+    </div>
+  </div>
+
+  @if (estado()?.configurado) {
+    <div class="cfg-status">● Conectado · {{ estado()?.host }}</div>
+  } @else {
+    <div class="cfg-status sin">● Sin configurar</div>
+  }
+
+  @if (ok()) {
+    <div class="msg-ok">{{ ok() }}</div>
+  }
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form">
+    <div class="fila">
+      <div class="cfg-field">
+        <label for="sm-host">Servidor SMTP</label>
+        <input id="sm-host" formControlName="host" placeholder="smtp.gmail.com" />
+      </div>
+      <div class="cfg-field">
+        <label for="sm-port">Puerto</label>
+        <input id="sm-port" type="number" formControlName="port" />
+      </div>
+    </div>
+
+    <div class="cfg-field">
+      <label for="sm-user">Usuario</label>
+      <input id="sm-user" formControlName="user" placeholder="cuenta@empresa.com" />
+    </div>
+
+    <div class="cfg-field">
+      <label for="sm-pass">
+        Contraseña
+        @if (estado()?.password_mask) {
+          <span class="mask">(actual: {{ estado()?.password_mask }})</span>
+        }
+      </label>
+      <input
+        id="sm-pass"
+        type="password"
+        formControlName="password"
+        [placeholder]="estado()?.configurado ? '•••• (dejar vacío para conservar)' : 'App password'"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="cfg-field">
+      <label for="sm-from">Remitente (From)</label>
+      <input id="sm-from" formControlName="from_email" placeholder="informes@empresa.com" />
+    </div>
+
+    <label class="tls">
+      <input type="checkbox" formControlName="use_tls" />
+      Usar TLS (STARTTLS)
+    </label>
+  </form>
+
+  <div class="acciones">
+    <button class="btn btn-outline" type="button" [disabled]="!!ocupado()" (click)="probar()">
+      {{ ocupado() === 'probar' ? 'Probando…' : 'Probar conexión' }}
+    </button>
+    <button class="btn btn-primary" type="button" [disabled]="!!ocupado()" (click)="guardar()">
+      {{ ocupado() === 'guardar' ? 'Guardando…' : 'Guardar' }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,622 @@
+// Primitivas visuales compartidas, portadas del mockup. Viven en el ámbito
+// global porque las usan casi todas las pantallas; lo específico de cada
+// layout (sidebar, login) vive en el .scss de su componente.
+
+/* ── CARDS ── */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-sub {
+  font-size: 11px;
+  color: var(--text-2);
+  font-weight: 400;
+}
+
+.inner {
+  background: var(--inner-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+/* ── KPI ── */
+.kpi {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  &.blue::after {
+    background: var(--accent);
+  }
+  &.green::after {
+    background: var(--green);
+  }
+  &.amber::after {
+    background: var(--amber);
+  }
+  &.purple::after {
+    background: var(--purple);
+  }
+  &.red::after {
+    background: var(--red);
+  }
+}
+
+.kpi-icon {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.kpi-val {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-1);
+  font-family: var(--mono);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.kpi-delta {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &.up {
+    color: var(--green);
+  }
+  &.down {
+    color: var(--red);
+  }
+  &.neutral {
+    color: var(--text-2);
+  }
+}
+
+/* ── TABLAS ── */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 8px 12px;
+    text-align: left;
+    background: var(--inner-bg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    font-size: 12px;
+    color: var(--text-2);
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background: var(--inner-bg);
+    color: var(--text-1);
+  }
+
+  td.strong {
+    color: var(--text-1);
+    font-weight: 500;
+  }
+
+  td.mono {
+    font-family: var(--mono);
+  }
+}
+
+.tbl-scroll {
+  overflow-x: auto;
+}
+
+/* ── PILLS ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &::before {
+    content: '●';
+    font-size: 7px;
+  }
+
+  &.green {
+    background: var(--green-dim);
+    color: #065f46;
+  }
+  &.red {
+    background: var(--red-dim);
+    color: #991b1b;
+  }
+  &.amber {
+    background: var(--amber-dim);
+    color: #92400e;
+  }
+  &.blue {
+    background: var(--accent-dim);
+    color: #0369a1;
+  }
+  &.purple {
+    background: var(--purple-dim);
+    color: #5b21b6;
+  }
+  &.gray {
+    background: #f1f5f9;
+    color: var(--text-2);
+  }
+}
+
+/* ── BOTONES ── */
+.btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-dk);
+  }
+}
+
+.btn-outline {
+  background: var(--card-bg);
+  border-color: var(--border);
+  color: var(--text-2);
+
+  &:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+
+  &:hover:not(:disabled) {
+    background: var(--body-bg);
+  }
+}
+
+.btn-danger {
+  background: var(--red-dim);
+  color: var(--red);
+  border-color: #fca5a5;
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 11px;
+}
+
+/* ── CHIPS Y FILTROS ── */
+.chip {
+  padding: 5px 11px;
+  background: var(--inner-bg);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 11px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.filter-chip {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  background: var(--card-bg);
+  color: var(--text-2);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &.active {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent-dk);
+  }
+}
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+  font-family: var(--sans);
+
+  &:hover {
+    color: var(--text-1);
+  }
+
+  &.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+}
+
+/* ── CAMPOS DE FORMULARIO (tema claro) ── */
+.cfg-field {
+  margin-bottom: 12px;
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-2);
+    margin-bottom: 4px;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--inner-bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text-1);
+    font-size: 12px;
+    font-family: var(--sans);
+    outline: none;
+    transition: border-color 0.15s;
+
+    &:focus {
+      border-color: var(--accent);
+    }
+
+    &::placeholder {
+      color: var(--text-3);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}
+
+/* Casilla con etiqueta al lado */
+.tls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 12px;
+  cursor: pointer;
+
+  input {
+    width: auto;
+    accent-color: var(--accent);
+  }
+}
+
+/* Dos campos lado a lado dentro de un formulario */
+.fila {
+  display: flex;
+  gap: 10px;
+
+  > * {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Texto de apoyo bajo un campo */
+.ayuda {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+
+.cfg-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--green);
+  margin-bottom: 12px;
+
+  &.sin {
+    color: var(--text-3);
+  }
+}
+
+/* Cabecera de las tarjetas de integración (Configuración) */
+.config-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+
+  .ic {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-1);
+  }
+
+  p {
+    font-size: 11px;
+    color: var(--text-2);
+  }
+}
+
+/* Secreto enmascarado que devuelve el backend junto a la etiqueta */
+.mask {
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.card > .acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* ── TOGGLE ── */
+.toggle {
+  width: 38px;
+  height: 22px;
+  background: var(--green);
+  border: none;
+  border-radius: 99px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 19px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: left 0.2s;
+  }
+
+  &.off {
+    background: var(--border);
+
+    &::after {
+      left: 3px;
+    }
+  }
+}
+
+/* ── BARRAS HORIZONTALES ── */
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bar-lbl {
+  font-size: 11px;
+  color: var(--text-2);
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+}
+
+.bar-val {
+  font-size: 11px;
+  color: var(--text-1);
+  font-family: var(--mono);
+  width: 38px;
+  text-align: right;
+}
+
+/* ── MODALES ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 900;
+}
+
+.modal {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.25);
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .acciones {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+
+    .btn {
+      flex: 1;
+    }
+  }
+}
+
+/* ── MENSAJES DE ESTADO ── */
+.msg-ok {
+  background: var(--green-dim);
+  border: 1px solid #6ee7b7;
+  color: #065f46;
+  padding: 9px 11px;
+  border-radius: 7px;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.msg-error {
+  background: var(--red-dim);
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  padding: 9px 11px;
+  border-radius: 7px;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-2);
+
+  .ic {
+    font-size: 34px;
+    margin-bottom: 8px;
+  }
+
+  h3 {
+    font-size: 15px;
+    color: var(--text-1);
+    margin-bottom: 6px;
+  }
+
+  p {
+    font-size: 12px;
+  }
+}

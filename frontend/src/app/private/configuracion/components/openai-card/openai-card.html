@@ -1,0 +1,65 @@
+<div class="card">
+  <div class="config-hdr">
+    <div class="ic" style="background: var(--amber-dim)">🤖</div>
+    <div>
+      <h3>OpenAI</h3>
+      <p>Motor de IA para las consultas en lenguaje natural</p>
+    </div>
+  </div>
+
+  @if (estado()?.configurado) {
+    <div class="cfg-status">● Conectado · {{ estado()?.model }}</div>
+  } @else {
+    <div class="cfg-status sin">● Sin configurar</div>
+  }
+
+  @if (ok()) {
+    <div class="msg-ok">{{ ok() }}</div>
+  }
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form">
+    <div class="cfg-field">
+      <label for="oa-key">
+        API Key
+        @if (estado()?.api_key_mask) {
+          <span class="mask">(actual: {{ estado()?.api_key_mask }})</span>
+        }
+      </label>
+      <input
+        id="oa-key"
+        type="password"
+        formControlName="api_key"
+        [placeholder]="estado()?.configurado ? '•••• (dejar vacío para conservar)' : 'sk-…'"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="cfg-field">
+      <label for="oa-model">Modelo</label>
+      <input id="oa-model" formControlName="model" list="modelos-openai" />
+      <datalist id="modelos-openai">
+        <option value="gpt-4o"></option>
+        <option value="gpt-4o-mini"></option>
+        <option value="gpt-4.1"></option>
+        <option value="o4-mini"></option>
+      </datalist>
+    </div>
+
+    <div class="cfg-field">
+      <label for="oa-url">Base URL (opcional)</label>
+      <input id="oa-url" formControlName="base_url" placeholder="https://api.openai.com/v1" />
+    </div>
+  </form>
+
+  <div class="acciones">
+    <button class="btn btn-outline" type="button" [disabled]="!!ocupado()" (click)="probar()">
+      {{ ocupado() === 'probar' ? 'Probando…' : 'Probar conexión' }}
+    </button>
+    <button class="btn btn-primary" type="button" [disabled]="!!ocupado()" (click)="guardar()">
+      {{ ocupado() === 'guardar' ? 'Guardando…' : 'Guardar' }}
+    </button>
+  </div>
+</div>

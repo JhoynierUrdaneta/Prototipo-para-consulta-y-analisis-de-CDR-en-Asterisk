@@ -1,0 +1,42 @@
+// Tokens de diseño. Fuente: estadis_call_tema_claro.html (tema claro).
+// Se exponen como custom properties para poder usarlos también desde
+// estilos de componente, que están encapsulados.
+:root {
+  // Sidebar (siempre oscuro, aunque el resto del tema sea claro)
+  --sidebar-bg: #0f172a;
+  --sidebar-hover: #1e293b;
+  --sidebar-act: #1e3a5f;
+  --sidebar-text: #94a3b8;
+  --sidebar-act-t: #38bdf8;
+  --sidebar-bdr: #1e293b;
+
+  // Acento
+  --accent: #0ea5e9;
+  --accent-dk: #0284c7;
+  --accent-dim: #e0f2fe;
+
+  // Semánticos
+  --green: #10b981;
+  --green-dim: #d1fae5;
+  --red: #ef4444;
+  --red-dim: #fee2e2;
+  --amber: #f59e0b;
+  --amber-dim: #fef3c7;
+  --purple: #8b5cf6;
+  --purple-dim: #ede9fe;
+
+  // Superficies y texto
+  --body-bg: #f1f5f9;
+  --card-bg: #ffffff;
+  --border: #e2e8f0;
+  --text-1: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+  --inner-bg: #f8fafc;
+
+  // Tipografía y forma
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --radius: 10px;
+  --sidebar-w: 220px;
+}

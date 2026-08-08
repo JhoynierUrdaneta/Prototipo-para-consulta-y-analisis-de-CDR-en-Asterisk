@@ -1,0 +1,77 @@
+name: callcenter-ai
+
+# Un solo archivo para dev y producción. Todo lo específico de producción se controla
+# por variables de entorno en el archivo .env (ver .env.example / DEPLOY.md):
+#   ENV=production  CORS_ORIGINS=https://tudominio  FRONTEND_HOST=127.0.0.1  + secretos fuertes
+# Levantar (dev o prod):  docker compose up -d --build
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: callcenter
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-callcenter}
+      POSTGRES_DB: callcenter_ai
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U callcenter -d callcenter_ai"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    # Solo para desarrollo con `ng serve` (proxy.conf.json apunta a localhost:8000).
+    # En producción nginx habla con backend:8000 por la red interna de Docker y
+    # esta publicación no hace falta; se limita a 127.0.0.1 para no exponerla.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_URL: postgresql://callcenter:${DB_PASSWORD:-callcenter}@db:5432/callcenter_ai
+      APP_SECRET_KEY: ${APP_SECRET_KEY:-dev-app-secret-change-me}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-me}
+      INTERNAL_KEY: ${INTERNAL_KEY:-dev-internal-key}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      ENV: ${ENV:-dev}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health').status==200 else 1)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # Puerto configurable: 8090 lo ocupa el servicio de notificaciones de
+    # Wondershare en algunos equipos, así que el valor por defecto es 8095.
+    # En prod define FRONTEND_HOST=127.0.0.1 (detrás de Cloudflare/Caddy)
+    # para no exponer el puerto directamente.
+    ports:
+      - "${FRONTEND_HOST:-0.0.0.0}:${FRONTEND_PORT:-8095}:80"
+
+  # Túnel Cloudflare: solo hace falta para publicar la app en internet.
+  # Desactivado porque la carpeta ./cloudflared no vino con el proyecto y su
+  # ausencia hacía fallar `docker compose up`. Para usarlo: pedir esa carpeta
+  # (Dockerfile + entrypoint.sh) al autor y descomentar este bloque.
+  #
+  # cloudflared:
+  #   build: ./cloudflared
+  #   restart: unless-stopped
+  #   environment:
+  #     BACKEND_URL: http://backend:8000
+  #     INTERNAL_KEY: ${INTERNAL_KEY:-dev-internal-key}
+  #   depends_on:
+  #     - backend
+  #     - frontend
+
+volumes:
+  dbdata:

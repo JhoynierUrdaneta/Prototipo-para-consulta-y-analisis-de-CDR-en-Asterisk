@@ -1,0 +1,15 @@
+.titulo {
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+.pregunta {
+  margin-top: 14px;
+}
+
+.opciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}

@@ -1,0 +1,72 @@
+<div class="msg-user">
+  <div class="bbl">{{ turno().pregunta }}</div>
+</div>
+
+@if (turno().cargando) {
+  <div class="card cargando">Analizando tu pregunta…</div>
+}
+
+@if (turno().error) {
+  <div class="msg-error">{{ turno().error }}</div>
+}
+
+@if (turno().aclaracion; as preguntas) {
+  <app-form-aclaracion [preguntas]="preguntas" (responder)="aclarar.emit($event)" />
+}
+
+@if (turno().data; as d) {
+  <div class="msg-ai">
+    <div class="ai-av">🤖</div>
+    <div class="bbl">
+      <div class="cabecera">
+        <h3>{{ d.titulo }}</h3>
+        <span class="meta">{{ d.n_filas }} filas · {{ d.ms }} ms</span>
+      </div>
+
+      @if (d.resumen) {
+        <p class="resumen">🔎 {{ d.resumen }}</p>
+      }
+
+      <div class="grafico">
+        <app-grafico [res]="d" />
+      </div>
+
+      @if (d.insight) {
+        <div class="insight">
+          <strong>💡 Análisis</strong>
+          <p>{{ d.insight }}</p>
+          @if (d.recomendaciones.length) {
+            <ul>
+              @for (r of d.recomendaciones; track r) {
+                <li>{{ r }}</li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      <div class="acciones">
+        <button class="btn btn-outline btn-sm" type="button" (click)="mostrarGuardar.set(true)">
+          + Guardar en tablero
+        </button>
+        <button class="btn btn-outline btn-sm" type="button" (click)="exportarPdf()">
+          ⬇ Exportar PDF
+        </button>
+        <button class="btn btn-outline btn-sm" type="button" (click)="exportarExcel()">
+          ⬇ Exportar Excel
+        </button>
+        <button class="btn btn-outline btn-sm" type="button" (click)="verSql.set(!verSql())">
+          🗔 {{ verSql() ? 'Ocultar SQL' : 'Ver SQL' }}
+        </button>
+      </div>
+
+      @if (verSql()) {
+        <pre class="sql">{{ d.sql }}</pre>
+      }
+    </div>
+  </div>
+
+  @if (mostrarGuardar()) {
+    <app-guardar-tablero-modal [widget]="widget()" (cerrar)="mostrarGuardar.set(false)" />
+  }
+}

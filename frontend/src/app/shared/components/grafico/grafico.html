@@ -1,0 +1,19 @@
+@if (!hayDatos()) {
+  <p class="vacio">Sin resultados.</p>
+} @else if (esNumero()) {
+  <div class="cifra">
+    <div class="valor">{{ valorNumero() }}</div>
+    <div class="etiqueta">{{ columnaNumero() }}</div>
+  </div>
+} @else if (esTabla()) {
+  <app-tabla-datos [columnas]="res().columnas" [filas]="res().filas" />
+} @else {
+  <div echarts [options]="opcion()" (chartInit)="alIniciarChart($event)" class="chart"></div>
+
+  <!-- En tortas se muestra además la tabla, para que la cifra sea auditable. -->
+  @if (esPie()) {
+    <div class="bajo-torta">
+      <app-tabla-datos [columnas]="res().columnas" [filas]="res().filas" />
+    </div>
+  }
+}

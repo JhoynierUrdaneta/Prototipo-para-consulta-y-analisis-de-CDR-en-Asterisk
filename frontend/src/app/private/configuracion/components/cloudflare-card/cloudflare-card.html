@@ -1,0 +1,59 @@
+<div class="card">
+  <div class="config-hdr">
+    <div class="ic" style="background: var(--purple-dim)">☁️</div>
+    <div>
+      <h3>Cloudflare</h3>
+      <p>Publica la app por internet con un túnel, sin IP pública</p>
+    </div>
+  </div>
+
+  @if (estado()?.configurado) {
+    <div class="cfg-status">● Túnel activo</div>
+  } @else {
+    <div class="cfg-status sin">● Sin configurar</div>
+  }
+
+  @if (ok()) {
+    <div class="msg-ok">{{ ok() }}</div>
+  }
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  }
+
+  <div class="cfg-field">
+    <label for="cf-token">
+      Token del túnel
+      @if (estado()?.token_mask) {
+        <span class="mask">(actual: {{ estado()?.token_mask }})</span>
+      }
+    </label>
+    <input
+      id="cf-token"
+      type="password"
+      name="token"
+      [(ngModel)]="token"
+      [placeholder]="estado()?.configurado ? '•••• (pega uno nuevo para reemplazar)' : 'eyJhIjoi…'"
+      autocomplete="off"
+    />
+    <small class="ayuda">
+      Créalo en Cloudflare Zero Trust → Networks → Tunnels y apunta el hostname público al
+      servicio <code>http://frontend:80</code>.
+    </small>
+  </div>
+
+  <div class="acciones">
+    @if (estado()?.configurado) {
+      <button class="btn btn-outline" type="button" [disabled]="ocupado()" (click)="detener()">
+        Detener
+      </button>
+    }
+    <button
+      class="btn btn-primary"
+      type="button"
+      [disabled]="ocupado() || !token"
+      (click)="guardar()"
+    >
+      {{ ocupado() ? 'Guardando…' : 'Guardar y publicar' }}
+    </button>
+  </div>
+</div>

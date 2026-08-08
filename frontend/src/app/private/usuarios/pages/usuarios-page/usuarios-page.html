@@ -1,0 +1,89 @@
+<div class="pg-header">
+  <div>
+    <div class="pg-title">Usuarios</div>
+    <div class="pg-sub">Cuentas del sistema y su perfil de acceso</div>
+  </div>
+  <button class="btn btn-primary" type="button" (click)="abrirNuevo()">+ Nuevo usuario</button>
+</div>
+
+<div class="pg-body">
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  }
+
+  <div class="card">
+    <div class="card-title">
+      Cuentas registradas
+      <span class="card-sub">{{ lista().length }} en total</span>
+    </div>
+
+    @if (cargando()) {
+      <p class="pg-sub">Cargando…</p>
+    } @else {
+      <div class="tbl-scroll">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Perfil</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of lista(); track u.id) {
+              <tr>
+                <td class="strong">
+                  {{ u.nombre }}
+                  @if (u.id === yo()?.id) {
+                    <span class="yo">(tú)</span>
+                  }
+                </td>
+                <td class="mono">{{ u.correo }}</td>
+                <td><span class="pill blue">{{ u.perfil }}</span></td>
+                <td>
+                  @if (u.activo) {
+                    <span class="pill green">Activo</span>
+                  } @else {
+                    <span class="pill gray">Inactivo</span>
+                  }
+                </td>
+                <td>
+                  <div class="acciones-fila">
+                    <button class="btn btn-outline btn-sm" type="button" (click)="abrirEdicion(u)">
+                      ✏️ Editar
+                    </button>
+                    @if (u.activo) {
+                      <button
+                        class="btn btn-ghost btn-sm borrar"
+                        type="button"
+                        [disabled]="u.id === yo()?.id"
+                        [title]="u.id === yo()?.id ? 'No puedes desactivar tu propia cuenta' : ''"
+                        (click)="desactivar(u)"
+                      >
+                        Desactivar
+                      </button>
+                    } @else {
+                      <button class="btn btn-ghost btn-sm" type="button" (click)="reactivar(u)">
+                        Reactivar
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+@if (modalAbierto()) {
+  <app-usuario-form-modal
+    [usuario]="enEdicion()"
+    (cerrar)="modalAbierto.set(false)"
+    (guardado)="alGuardar()"
+  />
+}

@@ -1,0 +1,51 @@
+<div class="modal-backdrop" (click)="cerrar.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3>{{ usuario() ? 'Editar usuario' : 'Nuevo usuario' }}</h3>
+
+    @if (error()) {
+      <div class="msg-error">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="enviar()">
+      <div class="cfg-field">
+        <label for="correo">Correo</label>
+        <input id="correo" type="email" formControlName="correo" placeholder="nombre@empresa.com" />
+      </div>
+
+      <div class="cfg-field">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" formControlName="nombre" placeholder="Nombre y apellido" />
+      </div>
+
+      <div class="cfg-field">
+        <label for="perfil">Perfil</label>
+        <select id="perfil" formControlName="perfil">
+          @for (p of perfiles; track p) {
+            <option [value]="p">{{ p }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="cfg-field">
+        <label for="password">Contraseña</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          [placeholder]="usuario() ? 'Dejar vacío para conservar la actual' : 'Mínimo 8 caracteres'"
+          autocomplete="new-password"
+        />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <small class="ayuda">La contraseña debe tener al menos 8 caracteres.</small>
+        }
+      </div>
+
+      <div class="acciones">
+        <button class="btn btn-outline" type="button" (click)="cerrar.emit()">Cancelar</button>
+        <button class="btn btn-primary" type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

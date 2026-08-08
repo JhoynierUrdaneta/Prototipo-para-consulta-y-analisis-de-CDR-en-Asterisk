@@ -1,0 +1,98 @@
+<div class="pg-header">
+  <div>
+    <div class="pg-title">Informes programados</div>
+    <div class="pg-sub">Reportes automáticos enviados por correo al equipo</div>
+  </div>
+  <button class="btn btn-primary" type="button" (click)="abrirNuevo()">+ Nuevo informe</button>
+</div>
+
+<div class="pg-body">
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  }
+  @if (aviso()) {
+    <div class="msg-ok">{{ aviso() }}</div>
+  }
+
+  <div class="g4">
+    <div class="kpi blue">
+      <div class="kpi-label">Informes activos</div>
+      <div class="kpi-val">{{ activos().length }}</div>
+      <div class="kpi-delta neutral">De {{ lista().length }} configurados</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Próximo envío</div>
+      <div class="kpi-val">{{ proximoEnvio() }}</div>
+      <div class="kpi-delta neutral">Hora Colombia</div>
+    </div>
+    <div class="kpi purple">
+      <div class="kpi-label">Destinatarios</div>
+      <div class="kpi-val">{{ destinatarios() }}</div>
+      <div class="kpi-delta neutral">En todas las listas</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Tableros disponibles</div>
+      <div class="kpi-val">{{ tableros().length }}</div>
+      <div class="kpi-delta neutral">Para programar</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Informes configurados</div>
+
+    @if (cargando()) {
+      <p class="pg-sub">Cargando…</p>
+    } @else if (lista().length === 0) {
+      <div class="empty-state">
+        <div class="ic">📧</div>
+        <h3>Aún no tienes informes</h3>
+        <p>Programa uno para recibir un tablero en PDF por correo automáticamente.</p>
+      </div>
+    } @else {
+      @for (i of lista(); track i.id) {
+        <div class="inf-card" [class.pausado]="!i.activo">
+          <div class="inf-icon blue">📊</div>
+          <div class="inf-info">
+            <div class="inf-title">{{ i.nombre }}</div>
+            <div class="inf-desc">Tablero: {{ nombreTablero(i.dashboard_id) }} · Formato: PDF</div>
+            <div class="inf-meta">
+              ⏰ {{ i.frecuencia === 'habiles' ? 'Días hábiles' : 'Todos los días' }} a las
+              {{ i.hora }} COT · 📧 {{ i.destinatarios }}
+              @if (i.ultimo_envio) {
+                · último envío {{ i.ultimo_envio }}
+              }
+              @if (!i.activo) {
+                · <span class="pausado-txt">Pausado</span>
+              }
+            </div>
+          </div>
+          <div class="inf-actions">
+            <button class="btn btn-outline btn-sm" type="button" (click)="enviarAhora(i)">
+              ▶ Enviar ahora
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button" (click)="abrirEdicion(i)">✏️</button>
+            <button class="btn btn-ghost btn-sm borrar" type="button" (click)="eliminar(i)">
+              🗑
+            </button>
+            <button
+              class="toggle"
+              type="button"
+              [class.off]="!i.activo"
+              [attr.aria-label]="i.activo ? 'Pausar informe' : 'Activar informe'"
+              (click)="alternarActivo(i)"
+            ></button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+@if (modalAbierto()) {
+  <app-informe-form-modal
+    [informe]="enEdicion()"
+    [tableros]="tableros()"
+    (cerrar)="modalAbierto.set(false)"
+    (guardado)="alGuardar()"
+  />
+}

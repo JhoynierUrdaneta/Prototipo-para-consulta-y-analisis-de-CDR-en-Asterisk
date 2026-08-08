@@ -1,0 +1,69 @@
+.inf-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  &.pausado {
+    opacity: 0.6;
+  }
+}
+
+.inf-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+
+  &.blue {
+    background: var(--accent-dim);
+  }
+}
+
+.inf-info {
+  flex: 1;
+  min-width: 220px;
+}
+
+.inf-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 2px;
+}
+
+.inf-desc {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.inf-meta {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.pausado-txt {
+  color: var(--red);
+}
+
+.inf-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.borrar {
+  color: var(--red);
+}

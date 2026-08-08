@@ -1,0 +1,120 @@
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.dash-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+  text-align: left;
+  font-family: var(--sans);
+
+  &:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(14, 165, 233, 0.1);
+  }
+}
+
+.dash-card-preview {
+  background: var(--inner-bg);
+  border-radius: 8px;
+  height: 100px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+
+  .barra {
+    flex: 1;
+    max-width: 34px;
+    border-radius: 3px 3px 0 0;
+    background: var(--accent);
+
+    &:nth-child(2) {
+      background: var(--green);
+    }
+    &:nth-child(3) {
+      background: var(--amber);
+    }
+    &:nth-child(4) {
+      background: var(--purple);
+    }
+  }
+}
+
+.dash-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 4px;
+}
+
+.dash-meta {
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.dash-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  background: var(--accent-dim);
+  color: var(--accent-dk);
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 500;
+
+  &.personal {
+    background: var(--purple-dim);
+    color: var(--purple);
+  }
+}
+
+.eliminar {
+  color: var(--red);
+}
+
+.nuevo {
+  border-style: dashed;
+  background: var(--inner-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 180px;
+
+  .mas {
+    font-size: 28px;
+    color: var(--text-2);
+  }
+
+  .t {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+  }
+
+  .s {
+    font-size: 11px;
+    color: var(--text-3);
+  }
+}

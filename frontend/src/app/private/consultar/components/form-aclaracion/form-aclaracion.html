@@ -1,0 +1,33 @@
+<div class="card">
+  <strong class="titulo">Para darte el mejor reporte, aclárame:</strong>
+  <p class="pg-sub">Elige una opción en cada punto (o escribe la tuya).</p>
+
+  @for (p of preguntas(); track p.clave) {
+    <div class="cfg-field pregunta">
+      <label>{{ p.pregunta }}</label>
+      <div class="opciones">
+        @for (o of p.opciones; track o) {
+          <button
+            type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="estaElegida(p, o)"
+            [class.btn-outline]="!estaElegida(p, o)"
+            (click)="elegir(p.clave, o)"
+          >
+            {{ o }}
+          </button>
+        }
+      </div>
+      <input
+        [ngModel]="valorLibre(p)"
+        (ngModelChange)="elegir(p.clave, $event)"
+        [name]="p.clave"
+        placeholder="…o escribe otra opción"
+      />
+    </div>
+  }
+
+  <button class="btn btn-primary" type="button" [disabled]="!completo()" (click)="enviar()">
+    Consultar con estas respuestas
+  </button>
+</div>

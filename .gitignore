@@ -1,0 +1,36 @@
+# ─── Secretos: NUNCA subir ───────────────────────────────────
+.env
+.env.*
+!.env.example
+env.produccion
+env.production
+*.pem
+*.key
+
+# ─── Dependencias y compilados ───────────────────────────────
+node_modules/
+dist/
+.angular/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ─── Herramientas y editores ─────────────────────────────────
+.vscode/
+.idea/
+.claude/
+*.log
+
+# ─── Sistema operativo ───────────────────────────────────────
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ─── Temporales ──────────────────────────────────────────────
+*.tmp
+*.bak
+*.zip
+
+# Notas internas de trabajo (no van al repositorio)
+REUNION.md

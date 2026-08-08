@@ -1,0 +1,46 @@
+<div class="pg-header">
+  <div>
+    <div class="pg-title">Resumen operacional</div>
+    <div class="pg-sub">Estado general de tu acceso y de las integraciones</div>
+  </div>
+</div>
+
+<div class="pg-body">
+  <div class="card bienvenida">
+    <div>
+      <div class="hola">
+        Hola, <span>{{ usuario()?.nombre }}</span> 👋
+      </div>
+      <div class="pg-sub">{{ saludo() }}</div>
+    </div>
+    <span class="pill blue">{{ usuario()?.perfil }}</span>
+  </div>
+
+  <div class="g4">
+    <div class="card">
+      <div class="k">Estado</div>
+      <div class="v ok">Operativo</div>
+    </div>
+    <div class="card">
+      <div class="k">Tu perfil</div>
+      <div class="v capitalizar">{{ usuario()?.perfil }}</div>
+    </div>
+    <div class="card">
+      <div class="k">Fuente de datos</div>
+      <div class="v">Supabase</div>
+    </div>
+    <div class="card">
+      <div class="k">Motor IA</div>
+      <div class="v">OpenAI</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Cómo empezar</div>
+    <p class="pg-sub">
+      Ve a <strong>Consultar IA</strong> y pregunta en español por tus métricas; desde el resultado
+      puedes guardarlo en un <strong>Tablero</strong> o programarlo como <strong>Informe</strong>
+      por correo.
+    </p>
+  </div>
+</div>

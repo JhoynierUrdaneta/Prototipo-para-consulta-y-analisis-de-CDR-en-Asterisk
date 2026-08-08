@@ -1,0 +1,30 @@
+<div class="login-wrap">
+  <div class="login-left">
+    <div class="login-logo-big">
+      <div class="ic">📞</div>
+      <div class="txt">Estadis<span>-Call</span></div>
+    </div>
+    <router-outlet />
+  </div>
+
+  <div class="login-right">
+    <div class="feat-grid">
+      @for (c of caracteristicas; track c.titulo) {
+        <div class="feat-card">
+          <div class="ic">{{ c.icono }}</div>
+          <h4>{{ c.titulo }}</h4>
+          <p>{{ c.texto }}</p>
+        </div>
+      }
+    </div>
+    <div class="testi">
+      <p>
+        "Pasamos de tardar 2 horas en un reporte a obtenerlo en segundos preguntándole al sistema
+        en español."
+      </p>
+      <div class="author">
+        <strong>Supervisora de Operaciones</strong> — Empresa BPO, Barranquilla
+      </div>
+    </div>
+  </div>
+</div>

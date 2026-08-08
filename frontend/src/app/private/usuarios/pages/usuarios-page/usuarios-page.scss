@@ -1,0 +1,18 @@
+.acciones-fila {
+  display: flex;
+  gap: 6px;
+}
+
+.yo {
+  color: var(--text-3);
+  font-weight: 400;
+  font-size: 11px;
+}
+
+.borrar {
+  color: var(--red);
+}
+
+.pill {
+  text-transform: capitalize;
+}

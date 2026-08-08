@@ -1,0 +1,76 @@
+<div class="card">
+  <div class="config-hdr">
+    <div class="ic" style="background: var(--green-dim)">🗄️</div>
+    <div>
+      <h3>Supabase</h3>
+      <p>Base de datos del call center (solo lectura)</p>
+    </div>
+  </div>
+
+  @if (estado()?.configurado) {
+    <div class="cfg-status">● Conectado · {{ estado()?.db_host }}</div>
+  } @else {
+    <div class="cfg-status sin">● Sin configurar</div>
+  }
+
+  @if (ok()) {
+    <div class="msg-ok">{{ ok() }}</div>
+  }
+  @if (error()) {
+    <div class="msg-error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form">
+    <div class="cfg-field">
+      <label for="sb-url">Project URL</label>
+      <input id="sb-url" formControlName="url" placeholder="https://xxxx.supabase.co" />
+    </div>
+
+    <div class="fila">
+      <div class="cfg-field">
+        <label for="sb-host">DB Host</label>
+        <input id="sb-host" formControlName="db_host" placeholder="db.xxxx.supabase.co" />
+      </div>
+      <div class="cfg-field">
+        <label for="sb-port">Puerto</label>
+        <input id="sb-port" type="number" formControlName="db_port" />
+      </div>
+    </div>
+
+    <div class="fila">
+      <div class="cfg-field">
+        <label for="sb-name">DB Name</label>
+        <input id="sb-name" formControlName="db_name" />
+      </div>
+      <div class="cfg-field">
+        <label for="sb-user">DB User (rol de solo lectura)</label>
+        <input id="sb-user" formControlName="db_user" placeholder="lector_ia" />
+      </div>
+    </div>
+
+    <div class="cfg-field">
+      <label for="sb-pass">
+        DB Password
+        @if (estado()?.db_password_mask) {
+          <span class="mask">(actual: {{ estado()?.db_password_mask }})</span>
+        }
+      </label>
+      <input
+        id="sb-pass"
+        type="password"
+        formControlName="db_password"
+        [placeholder]="estado()?.configurado ? '•••• (dejar vacío para conservar)' : ''"
+        autocomplete="off"
+      />
+    </div>
+  </form>
+
+  <div class="acciones">
+    <button class="btn btn-outline" type="button" [disabled]="!!ocupado()" (click)="probar()">
+      {{ ocupado() === 'probar' ? 'Probando…' : 'Probar conexión' }}
+    </button>
+    <button class="btn btn-primary" type="button" [disabled]="!!ocupado()" (click)="guardar()">
+      {{ ocupado() === 'guardar' ? 'Guardando…' : 'Guardar' }}
+    </button>
+  </div>
+</div>

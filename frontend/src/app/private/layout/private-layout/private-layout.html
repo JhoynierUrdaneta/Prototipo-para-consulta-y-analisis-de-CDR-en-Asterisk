@@ -1,0 +1,41 @@
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">📞</div>
+      <div class="sb-logo-txt">Estadis<span>-Call</span></div>
+    </div>
+
+    @for (grupo of navegacion(); track grupo.titulo) {
+      <div class="sb-section">{{ grupo.titulo }}</div>
+      @for (item of grupo.items; track item.ruta) {
+        <a
+          class="sb-item"
+          [routerLink]="item.ruta"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: !!item.exacto }"
+        >
+          <span class="ic">{{ item.icono }}</span>
+          {{ item.etiqueta }}
+          @if (item.insignia) {
+            <span class="sb-badge">{{ item.insignia }}</span>
+          }
+        </a>
+      }
+    }
+
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="avatar">{{ iniciales() }}</div>
+        <div class="datos">
+          <div class="u-name">{{ usuario()?.nombre }}</div>
+          <div class="u-role">{{ usuario()?.perfil }}</div>
+        </div>
+      </div>
+      <button class="salir" type="button" (click)="cerrarSesion()">⇥ Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <router-outlet />
+  </main>
+</div>

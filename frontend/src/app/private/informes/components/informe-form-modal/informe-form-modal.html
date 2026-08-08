@@ -1,0 +1,60 @@
+<div class="modal-backdrop" (click)="cerrar.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3>{{ informe() ? 'Editar informe' : 'Nuevo informe programado' }}</h3>
+
+    @if (error()) {
+      <div class="msg-error">{{ error() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="enviar()">
+      <div class="cfg-field">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" formControlName="nombre" placeholder="Resumen ejecutivo diario" />
+      </div>
+
+      <div class="cfg-field">
+        <label for="tablero">Tablero a enviar</label>
+        <select id="tablero" formControlName="dashboard_id">
+          <option value="">— Elige un tablero —</option>
+          @for (t of tableros(); track t.id) {
+            <option [value]="t.id">{{ t.nombre }}</option>
+          }
+        </select>
+        @if (informe()) {
+          <small class="ayuda">El tablero de un informe existente no se puede cambiar.</small>
+        }
+      </div>
+
+      <div class="cfg-field">
+        <label for="destinatarios">Destinatarios</label>
+        <input
+          id="destinatarios"
+          formControlName="destinatarios"
+          placeholder="gerencia@empresa.com, supervisores@empresa.com"
+        />
+        <small class="ayuda">Separa varios correos con comas.</small>
+      </div>
+
+      <div class="fila">
+        <div class="cfg-field">
+          <label for="hora">Hora (Colombia)</label>
+          <input id="hora" type="time" formControlName="hora" />
+        </div>
+        <div class="cfg-field">
+          <label for="frecuencia">Frecuencia</label>
+          <select id="frecuencia" formControlName="frecuencia">
+            <option value="diario">Todos los días</option>
+            <option value="habiles">Solo días hábiles</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="acciones">
+        <button class="btn btn-outline" type="button" (click)="cerrar.emit()">Cancelar</button>
+        <button class="btn btn-primary" type="submit" [disabled]="enviando()">
+          {{ enviando() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

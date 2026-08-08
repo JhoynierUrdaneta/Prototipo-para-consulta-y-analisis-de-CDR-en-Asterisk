@@ -1,0 +1,87 @@
+<div class="chat-wrap">
+  <aside class="chat-sb">
+    <div class="chat-sb-hdr">
+      <span class="chat-sb-title">Conversaciones</span>
+      <button class="btn btn-primary btn-sm" type="button" (click)="nueva()">+ Nueva</button>
+    </div>
+
+    <div class="chat-hist">
+      @for (c of lista(); track c.id) {
+        <button
+          type="button"
+          class="chat-item"
+          [class.active]="c.id === conversacionId()"
+          (click)="abrir(c.id)"
+        >
+          <div class="chat-item-t">{{ c.titulo }}</div>
+          <div class="chat-item-d">{{ c.created_at | date: 'short' }}</div>
+        </button>
+      } @empty {
+        <p class="sin-convs">Aún no tienes conversaciones.</p>
+      }
+    </div>
+
+    <div class="chat-sb-pie">
+      @if (conversacionId()) {
+        <button class="btn btn-ghost btn-sm borrar" type="button" (click)="borrarConversacion()">
+          🗑 Eliminar conversación
+        </button>
+      }
+      <p class="retencion">El historial se conserva 30 días y luego se elimina solo.</p>
+    </div>
+  </aside>
+
+  <section class="chat-main">
+    <header class="chat-hdr">
+      <div>
+        <div class="chat-hdr-title">Consulta con IA</div>
+        <div class="chat-hdr-sub">Pregunta en español sobre los datos del call center</div>
+      </div>
+    </header>
+
+    <div class="chat-msgs">
+      @if (turnos().length === 0) {
+        <div class="card bienvenida">
+          <div class="ic">💬</div>
+          <h3>Haz tu primera pregunta</h3>
+          <p class="pg-sub">Por ejemplo:</p>
+          <div class="sugerencias">
+            @for (s of sugerencias; track s) {
+              <button class="chip" type="button" (click)="preguntar(s)">{{ s }}</button>
+            }
+          </div>
+        </div>
+      }
+
+      @for (turno of turnos(); track $index) {
+        <app-turno-chat
+          [turno]="turno"
+          (aclarar)="responderAclaracion($index, $event)"
+        />
+      }
+
+      <div #fin></div>
+    </div>
+
+    <div class="chat-input-area">
+      @if (turnos().length > 0) {
+        <div class="suggestions">
+          @for (s of sugerencias; track s) {
+            <button class="chip" type="button" (click)="preguntar(s)">{{ s }}</button>
+          }
+        </div>
+      }
+      <form class="input-wrap" (ngSubmit)="enviar()">
+        <input
+          class="chat-inp"
+          name="pregunta"
+          [(ngModel)]="texto"
+          [disabled]="ocupado()"
+          placeholder="Pregunta algo sobre llamadas, agentes o campañas…"
+          autocomplete="off"
+        />
+        <button class="send-btn" type="submit" [disabled]="ocupado() || !texto.trim()">➤</button>
+      </form>
+    </div>
+  </section>
+</div>
