@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { Perfil } from '../../../shared/models/usuario.model';
@@ -32,6 +32,9 @@ export class PrivateLayout {
 
   protected readonly usuario = this.auth.usuario;
   protected readonly iniciales = this.auth.iniciales;
+
+  /** Estado del menú en móvil (cajón deslizable). Sin efecto en escritorio. */
+  protected readonly menuAbierto = signal(false);
 
   // Financiero queda pendiente: el mockup no trae esa pantalla dibujada, a
   // diferencia de Dashboard/Agentes/Campañas que sí se implementaron completas.
@@ -74,5 +77,14 @@ export class PrivateLayout {
 
   protected cerrarSesion(): void {
     this.auth.logout();
+  }
+
+  protected alternarMenu(): void {
+    this.menuAbierto.update((v) => !v);
+  }
+
+  /** Se llama al elegir un ítem del menú, para que el cajón no quede abierto tapando la página. */
+  protected cerrarMenu(): void {
+    this.menuAbierto.set(false);
   }
 }

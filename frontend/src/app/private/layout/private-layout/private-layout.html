@@ -1,8 +1,29 @@
 <div class="app">
-  <aside class="sidebar">
+  <header class="topbar-movil">
+    <button
+      class="menu-btn"
+      type="button"
+      (click)="alternarMenu()"
+      [attr.aria-expanded]="menuAbierto()"
+      aria-label="Abrir menú"
+    >
+      ☰
+    </button>
+    <div class="topbar-logo">
+      <div class="sb-logo-icon">📞</div>
+      <div class="sb-logo-txt">Estadis<span>-Call</span></div>
+    </div>
+  </header>
+
+  @if (menuAbierto()) {
+    <div class="backdrop-menu" (click)="cerrarMenu()"></div>
+  }
+
+  <aside class="sidebar" [class.abierta]="menuAbierto()">
     <div class="sb-logo">
       <div class="sb-logo-icon">📞</div>
       <div class="sb-logo-txt">Estadis<span>-Call</span></div>
+      <button class="cerrar-menu" type="button" (click)="cerrarMenu()" aria-label="Cerrar menú">✕</button>
     </div>
 
     @for (grupo of navegacion(); track grupo.titulo) {
@@ -13,6 +34,7 @@
           [routerLink]="item.ruta"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: !!item.exacto }"
+          (click)="cerrarMenu()"
         >
           <span class="ic">{{ item.icono }}</span>
           {{ item.etiqueta }}

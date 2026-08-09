@@ -22,6 +22,62 @@
   gap: 8px;
 }
 
+// Botón "✕" dentro del cajón para cerrarlo; solo existe visualmente en móvil.
+.cerrar-menu {
+  display: none;
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+
+  &:hover {
+    color: #e2e8f0;
+  }
+}
+
+// Barra con el botón de hamburguesa. Oculta en escritorio: ahí el sidebar
+// siempre está visible y no hace falta ningún control para mostrarlo.
+.topbar-movil {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--sidebar-bdr);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.menu-btn {
+  background: none;
+  border: 1px solid var(--sidebar-bdr);
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 16px;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--sidebar-hover);
+  }
+}
+
+.topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backdrop-menu {
+  display: none;
+}
+
 .sb-logo-icon {
   width: 28px;
   height: 28px;
@@ -175,8 +231,44 @@
     grid-template-columns: 1fr;
   }
 
+  .topbar-movil {
+    display: flex;
+  }
+
+  // El sidebar deja de ocupar espacio en la rejilla y se convierte en un
+  // cajón que se desliza por encima del contenido, oculto por defecto.
   .sidebar {
-    position: static;
-    height: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 860;
+    width: min(280px, 85vw);
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+
+    &.abierta {
+      transform: translateX(0);
+    }
+  }
+
+  .cerrar-menu {
+    display: block;
+  }
+
+  // El logo ya se muestra en la barra superior móvil; dentro del cajón
+  // solo hace falta el botón de cerrar.
+  .sb-logo .sb-logo-icon,
+  .sb-logo .sb-logo-txt {
+    display: none;
+  }
+
+  .backdrop-menu {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 850;
   }
 }

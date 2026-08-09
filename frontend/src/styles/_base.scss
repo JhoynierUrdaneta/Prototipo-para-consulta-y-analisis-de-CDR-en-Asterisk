@@ -16,6 +16,10 @@ body {
   background: var(--body-bg);
   color: var(--text-1);
   -webkit-font-smoothing: antialiased;
+  // Red de seguridad: ningún elemento debería desbordar, pero si algo se
+  // escapa (una rejilla mal calculada, una tabla sin envoltorio) esto evita
+  // que aparezca una barra de scroll horizontal en toda la página.
+  overflow-x: hidden;
 }
 
 // Cabecera de página, repetida en todas las vistas privadas
@@ -80,6 +84,17 @@ body {
   .g4,
   .g2 {
     grid-template-columns: 1fr;
+  }
+}
+
+// Menos padding en teléfonos angostos: 24px por lado le quita casi 50px
+// útiles a una pantalla de 320-375px.
+@media (max-width: 480px) {
+  .pg-header {
+    padding: 16px 16px 0;
+  }
+  .pg-body {
+    padding: 0 16px 16px;
   }
 }
 

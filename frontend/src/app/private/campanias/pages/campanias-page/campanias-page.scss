@@ -1,6 +1,8 @@
 .camp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  // 320px era demasiado justo en un teléfono de 375px (o menor) una vez
+  // restado el padding de la página.
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 14px;
 }
 
