@@ -42,6 +42,35 @@ async def _log(user_id, pregunta, sql, filas, ms, exito, error):
         )
 
 
+async def _historial_reciente(conv_id: str, usuario_id: str, n: int = 3) -> list[dict]:
+    """Últimas N preguntas ya resueltas de la conversación, para que el planificador pueda
+    resolver referencias a turnos anteriores ("esas llamadas", "¿y ayer?", etc.)."""
+    pool = await get_pool()
+    async with pool.acquire() as con:
+        propio = await con.fetchval(
+            "select 1 from conversaciones where id = $1 and usuario_id = $2", conv_id, usuario_id
+        )
+        if not propio:
+            return []
+        rows = await con.fetch(
+            "select rol, contenido, datos from mensajes where conversacion_id = $1 "
+            "order by id desc limit $2",
+            conv_id, n * 2,
+        )
+    turnos, pregunta = [], None
+    for r in reversed(rows):
+        if r["rol"] == "user":
+            pregunta = r["contenido"]
+        elif r["rol"] == "assistant" and pregunta is not None:
+            datos = r["datos"]
+            if isinstance(datos, str):
+                datos = json.loads(datos)
+            turnos.append({"pregunta": pregunta, "resumen": (datos or {}).get("resumen"),
+                            "sql": (datos or {}).get("sql")})
+            pregunta = None
+    return turnos
+
+
 async def _persistir_chat(user_id, conv_id, pregunta, res) -> str:
     """Guarda el turno (pregunta + respuesta con datos) en conversaciones/mensajes."""
     pool = await get_pool()
@@ -73,8 +102,9 @@ async def _persistir_chat(user_id, conv_id, pregunta, res) -> str:
 @router.post("")
 async def consultar(body: ConsultaIn, user: dict = Depends(current_user)):
     limit(f"consulta:{user['id']}", settings.consulta_max_por_min, 60)
+    historial = await _historial_reciente(body.conversacion_id, user["id"]) if body.conversacion_id else []
     try:
-        res = await responder(body.pregunta, user["perfil"], body.aclaraciones)
+        res = await responder(body.pregunta, user["perfil"], body.aclaraciones, historial)
     except SQLError as e:
         await _log(user["id"], body.pregunta, None, None, None, False, str(e))
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"Consulta no permitida: {e}")

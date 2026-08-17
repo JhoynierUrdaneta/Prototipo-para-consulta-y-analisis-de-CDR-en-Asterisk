@@ -22,8 +22,23 @@ PostgreSQL de SOLO LECTURA:
 
 {esquema}
 
+Si hay turnos anteriores de esta conversación arriba, úsalos para resolver referencias de la
+pregunta actual ("esas llamadas", "¿y ayer?", "compáralo con la anterior") tomando el período,
+filtros o entidad del turno previo correspondiente. Si la pregunta actual ya es autosuficiente,
+ignora el historial.
+
+PASO 0 — ¿La pregunta pide MODIFICAR datos (actualizar, insertar, borrar, eliminar, cambiar un
+valor existente, "para que sea X en vez de Y", etc.)? Este sistema SOLO puede consultar, nunca
+escribir. NO inventes un SELECT que intente simular o rodear el pedido: responde de inmediato
+{{"rechazado": true, "motivo": "explicación breve y clara de que solo puedes consultar datos, no
+modificarlos"}} y detente ahí (no generes preguntas de aclaración ni SQL).
+
 PASO 1 — ¿La pregunta necesita ACLARACIÓN? Marca necesita_aclaracion=true si la pregunta es
-ambigua, puede interpretarse de varias formas, o NO especifica un período de tiempo claro.
+ambigua, puede interpretarse de varias formas, o NO especifica un período de tiempo claro. Una
+FECHA EXPLÍCITA ("el 22 de julio de 2026", "del 1 al 15 de junio") SÍ es un período claro — no la
+trates como ambigua solo porque no coincide con las 5 opciones típicas (Hoy/Ayer/Últimos 7
+días/Este mes/Todo el histórico); esas son sugerencias para cuando el usuario NO dio fecha, no una
+lista cerrada de períodos válidos.
 Si el usuario ya incluyó "Aclaraciones del usuario", NO vuelvas a preguntar (necesita_aclaracion=false).
 Cuando necesita_aclaracion=true, devuelve HASTA 3 preguntas para aclarar (máx 3) e incluye SIEMPRE:
   1. PERÍODO, con opciones adecuadas (p.ej. "Hoy","Ayer","Últimos 7 días","Este mes","Todo el histórico").
@@ -38,7 +53,10 @@ PASO 2 — Si NO necesita aclaración (o ya hay aclaraciones), genera el reporte
 - Respeta el PERÍODO y el TIPO DE GRÁFICO indicados en las "Aclaraciones del usuario" si existen.
 - Mapea el período sobre fecha_hora_inicio: Hoy->current_date; Ayer->current_date-1;
   "Últimos 7 días"-> >= current_date-6; "Este mes"-> >= date_trunc('month',current_date);
-  "Todo el histórico"-> sin filtro de fecha. El costo está en COP. Incluye ORDER BY y LIMIT (máx 200).
+  "Todo el histórico"-> sin filtro de fecha. Si la pregunta da una FECHA EXPLÍCITA, usa
+  fecha_hora_inicio::date = 'YYYY-MM-DD'; si da un rango explícito, usa
+  fecha_hora_inicio::date BETWEEN 'YYYY-MM-DD' AND 'YYYY-MM-DD'.
+  El costo está en COP. Incluye ORDER BY y LIMIT (máx 200).
 - `eje_x` SIEMPRE columna categórica/temporal, NUNCA una métrica ni el nombre de la entidad comparada.
 - COINCIDENCIA DE NOMBRES: nunca uses igualdad exacta; normaliza con translate() para ignorar tildes y
   compara el nombre completo por PALABRAS con LIKE (términos en minúscula y sin tildes; el orden no importa).
@@ -52,6 +70,7 @@ PASO 2 — Si NO necesita aclaración (o ya hay aclaraciones), genera el reporte
 - Perfil del usuario: {perfil}. {foco}
 
 Responde SOLO un JSON:
+- Si pide modificar datos: {{"rechazado": true, "motivo": "..."}}
 - Si necesita aclaración:
   {{"necesita_aclaracion": true, "preguntas": [ {{"pregunta":"...","clave":"...","opciones":["..."]}} ]}}
 - Si no:
@@ -97,7 +116,9 @@ async def _chat(cfg: dict, messages: list[dict], temperature: float = 0.1) -> di
     return json.loads(r.json()["choices"][0]["message"]["content"])
 
 
-async def responder(pregunta: str, perfil: str, aclaraciones: dict | None = None) -> dict:
+async def responder(
+    pregunta: str, perfil: str, aclaraciones: dict | None = None, historial: list[dict] | None = None
+) -> dict:
     ocfg = await obtener("openai")
     if not ocfg or not ocfg.get("api_key"):
         raise RuntimeError("OpenAI no está configurado. Ve a Configuración.")
@@ -110,14 +131,32 @@ async def responder(pregunta: str, perfil: str, aclaraciones: dict | None = None
         detalle = "; ".join(f"{k}: {v}" for k, v in aclaraciones.items() if v)
         contenido = f"{pregunta}\n\nAclaraciones del usuario -> {detalle}"
 
+    # Turnos previos de la conversación como mensajes reales, para que el modelo pueda
+    # resolver referencias como "esas llamadas" o "¿y ayer?" sin que el usuario repita el
+    # contexto. Cada turno pasado se resume a lo que realmente se consultó (no los datos
+    # completos, para no disparar el costo de tokens).
+    mensajes_planner = [{"role": "system", "content": _system_planner(esquema, perfil)}]
+    for turno in (historial or [])[-3:]:
+        mensajes_planner.append({"role": "user", "content": turno["pregunta"]})
+        mensajes_planner.append(
+            {
+                "role": "assistant",
+                "content": json.dumps(
+                    {"resumen": turno.get("resumen"), "sql": turno.get("sql")}, ensure_ascii=False
+                ),
+            }
+        )
+    mensajes_planner.append({"role": "user", "content": contenido})
+
     # 1) Planificador: decide si aclara, o genera SQL + especificación de gráfico
-    plan = await _chat(
-        ocfg,
-        [
-            {"role": "system", "content": _system_planner(esquema, perfil)},
-            {"role": "user", "content": contenido},
-        ],
-    )
+    plan = await _chat(ocfg, mensajes_planner)
+
+    # Pedido de escritura (update/insert/delete/"cambia X por Y"): se rechaza explícito en vez
+    # de dejar que el modelo invente un SELECT que no tiene nada que ver con lo pedido.
+    if plan.get("rechazado"):
+        raise RuntimeError(
+            plan.get("motivo") or "Este asistente solo puede consultar datos, no modificarlos."
+        )
 
     # Si la pregunta es ambigua y aún no hay aclaraciones, devolvemos las preguntas.
     if plan.get("necesita_aclaracion") and not aclaraciones:

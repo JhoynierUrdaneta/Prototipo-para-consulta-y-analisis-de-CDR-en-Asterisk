@@ -30,16 +30,19 @@ async def get_pool() -> asyncpg.Pool:
             max_size=5,
             ssl="require",
             command_timeout=20,
-            server_settings={
-                "statement_timeout": "15000",
-                # El día operativo del call center es el de Colombia. Sin esto,
-                # `current_date` se evalúa en UTC y a partir de las 19:00 hora
-                # local todos los reportes de "hoy" salen vacíos.
-                "timezone": "America/Bogota",
-            },
         )
         _state["dsn"] = dsn
     return _state["pool"]
+
+
+async def _preparar_sesion(con: asyncpg.Connection) -> None:
+    """Fija statement_timeout y timezone por conexión con SET (no como parámetro de
+    arranque): el pool de Supabase (Supavisor, modo transacción) rechaza parámetros
+    de arranque no estándar como statement_timeout. El timezone es crítico -sin él,
+    `current_date` se evalúa en UTC y a partir de las 19:00 hora Colombia todos los
+    reportes de "hoy" salen vacíos."""
+    await con.execute("SET statement_timeout = '15000'")
+    await con.execute("SET timezone = 'America/Bogota'")
 
 
 def _clean(v):
@@ -55,6 +58,7 @@ def _clean(v):
 async def run_sql(sql_guarded: str) -> tuple[list[str], list[dict]]:
     pool = await get_pool()
     async with pool.acquire() as con:
+        await _preparar_sesion(con)
         rows = await con.fetch(sql_guarded)
     cols = list(rows[0].keys()) if rows else []
     data = [{k: _clean(v) for k, v in r.items()} for r in rows]
@@ -65,6 +69,7 @@ async def esquema_texto() -> str:
     """Introspección del esquema public (tablas, vistas y columnas) para el prompt del LLM."""
     pool = await get_pool()
     async with pool.acquire() as con:
+        await _preparar_sesion(con)
         cols = await con.fetch(
             """
             select c.table_name, c.column_name, c.data_type,

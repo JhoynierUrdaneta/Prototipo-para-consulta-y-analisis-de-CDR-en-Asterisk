@@ -96,7 +96,11 @@ export class Grafico {
                 name: formatearValor(f[columnaEje]),
                 value: aNumero(f[series[0]!]),
               })),
-              label: { color: EJE },
+              // Sin etiquetas con línea guía: con la leyenda (nombre+color)
+              // y la tabla de abajo (valores exactos), solo generan choques
+              // y texto cortado en tarjetas angostas.
+              label: { show: false },
+              labelLine: { show: false },
             },
           ]
         : series.map((s) => ({
