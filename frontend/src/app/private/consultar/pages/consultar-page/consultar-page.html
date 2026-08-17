@@ -5,16 +5,38 @@
       <button class="btn btn-primary btn-sm" type="button" (click)="nueva()">+ Nueva</button>
     </div>
 
+    @if (lista().length > 0) {
+      <div class="sel-bar">
+        @if (modoSeleccion()) {
+          <button class="lnk" type="button" (click)="alternarTodas()">
+            {{ todasSeleccionadas() ? 'Quitar todas' : 'Seleccionar todas' }}
+          </button>
+          <button class="lnk" type="button" (click)="cancelarSeleccion()">Cancelar</button>
+        } @else {
+          <button class="lnk" type="button" (click)="activarSeleccion()">
+            ☑ Seleccionar varias
+          </button>
+        }
+      </div>
+    }
+
     <div class="chat-hist">
       @for (c of lista(); track c.id) {
         <button
           type="button"
           class="chat-item"
-          [class.active]="c.id === conversacionId()"
-          (click)="abrir(c.id)"
+          [class.active]="!modoSeleccion() && c.id === conversacionId()"
+          [class.marcada]="seleccionadas().has(c.id)"
+          [attr.aria-pressed]="modoSeleccion() ? seleccionadas().has(c.id) : null"
+          (click)="alPulsarItem(c.id)"
         >
-          <div class="chat-item-t">{{ c.titulo }}</div>
-          <div class="chat-item-d">{{ c.created_at | date: 'short' }}</div>
+          @if (modoSeleccion()) {
+            <span class="tick" [class.on]="seleccionadas().has(c.id)" aria-hidden="true">✓</span>
+          }
+          <span class="chat-item-txt">
+            <span class="chat-item-t">{{ c.titulo }}</span>
+            <span class="chat-item-d">{{ c.created_at | date: 'short' }}</span>
+          </span>
         </button>
       } @empty {
         <p class="sin-convs">Aún no tienes conversaciones.</p>
@@ -22,7 +44,19 @@
     </div>
 
     <div class="chat-sb-pie">
-      @if (conversacionId()) {
+      @if (modoSeleccion()) {
+        <button
+          class="btn btn-ghost btn-sm borrar"
+          type="button"
+          [disabled]="seleccionadas().size === 0 || borrando()"
+          (click)="borrarSeleccionadas()"
+        >
+          🗑 Eliminar
+          @if (seleccionadas().size > 0) {
+            ({{ seleccionadas().size }})
+          }
+        </button>
+      } @else if (conversacionId()) {
         <button class="btn btn-ghost btn-sm borrar" type="button" (click)="borrarConversacion()">
           🗑 Eliminar conversación
         </button>

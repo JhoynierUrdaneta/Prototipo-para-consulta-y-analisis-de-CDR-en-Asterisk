@@ -1,11 +1,19 @@
 import json
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 
 from ..db import get_pool
 from ..security import current_user
 
 router = APIRouter(prefix="/api/conversaciones", tags=["conversaciones"])
+
+
+class EliminarVarias(BaseModel):
+    """Ids a borrar en una sola petición (evita N llamadas desde la UI)."""
+
+    ids: list[str] = Field(min_length=1, max_length=200)
 
 
 @router.get("")
@@ -39,6 +47,28 @@ async def mensajes(cid: str, user: dict = Depends(current_user)):
             datos = json.loads(datos)
         out.append({"rol": r["rol"], "contenido": r["contenido"], "datos": datos})
     return out
+
+
+@router.post("/eliminar")
+async def eliminar_varias(body: EliminarVarias, user: dict = Depends(current_user)):
+    """Borra varias conversaciones del usuario en una sola operación.
+
+    El filtro por usuario_id va en el propio DELETE: los ids que no le pertenezcan
+    simplemente no se borran, sin revelar si existen.
+    """
+    try:
+        ids = [uuid.UUID(i) for i in body.ids]
+    except ValueError:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Identificador de conversación inválido")
+
+    pool = await get_pool()
+    async with pool.acquire() as con:
+        res = await con.execute(
+            "delete from conversaciones where id = any($1::uuid[]) and usuario_id = $2",
+            ids, user["id"],
+        )
+    # asyncpg devuelve "DELETE <n>"
+    return {"eliminadas": int(res.rsplit(" ", 1)[-1])}
 
 
 @router.delete("/{cid}", status_code=status.HTTP_204_NO_CONTENT)

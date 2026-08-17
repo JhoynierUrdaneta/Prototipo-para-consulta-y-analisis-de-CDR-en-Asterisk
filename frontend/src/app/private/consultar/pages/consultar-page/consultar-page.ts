@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  computed,
   inject,
   signal,
   viewChild,
@@ -56,6 +57,15 @@ export class ConsultarPage {
   protected readonly ocupado = signal(false);
   protected texto = '';
 
+  /** Modo "seleccionar varias" del historial, para borrar en lote. */
+  protected readonly modoSeleccion = signal(false);
+  protected readonly seleccionadas = signal<ReadonlySet<string>>(new Set());
+  protected readonly borrando = signal(false);
+
+  protected readonly todasSeleccionadas = computed(
+    () => this.lista().length > 0 && this.seleccionadas().size === this.lista().length,
+  );
+
   constructor() {
     // Al entrar, restaura la última conversación para no perder el hilo
     // al cambiar de sección (mismo comportamiento que el React).
@@ -104,6 +114,70 @@ export class ConsultarPage {
     this.conversaciones.eliminar(id).subscribe(() => {
       this.nueva();
       this.recargarLista();
+    });
+  }
+
+  protected activarSeleccion(): void {
+    this.modoSeleccion.set(true);
+    this.seleccionadas.set(new Set());
+  }
+
+  protected cancelarSeleccion(): void {
+    this.modoSeleccion.set(false);
+    this.seleccionadas.set(new Set());
+  }
+
+  /** En modo selección el clic marca/desmarca en vez de abrir la conversación. */
+  protected alPulsarItem(id: string): void {
+    if (this.modoSeleccion()) {
+      this.alternarSeleccion(id);
+    } else {
+      this.abrir(id);
+    }
+  }
+
+  protected alternarSeleccion(id: string): void {
+    this.seleccionadas.update((actuales) => {
+      const copia = new Set(actuales);
+      if (!copia.delete(id)) {
+        copia.add(id);
+      }
+      return copia;
+    });
+  }
+
+  protected alternarTodas(): void {
+    this.seleccionadas.set(
+      this.todasSeleccionadas() ? new Set() : new Set(this.lista().map((c) => c.id)),
+    );
+  }
+
+  protected borrarSeleccionadas(): void {
+    const ids = [...this.seleccionadas()];
+    if (ids.length === 0 || this.borrando()) {
+      return;
+    }
+    const mensaje =
+      ids.length === 1
+        ? '¿Eliminar esta conversación?'
+        : `¿Eliminar ${ids.length} conversaciones? Esta acción no se puede deshacer.`;
+    if (!confirm(mensaje)) {
+      return;
+    }
+
+    this.borrando.set(true);
+    const abierta = this.conversacionId();
+    this.conversaciones.eliminarVarias(ids).subscribe({
+      next: () => {
+        // Si la conversación abierta se fue en el lote, se limpia el panel.
+        if (abierta && ids.includes(abierta)) {
+          this.nueva();
+        }
+        this.cancelarSeleccion();
+        this.borrando.set(false);
+        this.recargarLista();
+      },
+      error: () => this.borrando.set(false),
     });
   }
 

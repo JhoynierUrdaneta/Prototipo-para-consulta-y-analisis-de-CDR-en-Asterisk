@@ -22,4 +22,9 @@ export class ConversacionesService {
   eliminar(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
+
+  /** Borrado en lote: una sola petición en vez de una por conversación. */
+  eliminarVarias(ids: string[]): Observable<{ eliminadas: number }> {
+    return this.http.post<{ eliminadas: number }>(`${this.base}/eliminar`, { ids });
+  }
 }
