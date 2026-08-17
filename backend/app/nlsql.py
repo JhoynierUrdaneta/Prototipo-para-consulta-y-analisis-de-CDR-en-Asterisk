@@ -96,10 +96,21 @@ PASO 2 — Si NO necesita aclaración (o ya hay aclaraciones), genera el reporte
   "últimos 7 días" -> >= current_date - 6  (ventana móvil; NO es lo mismo que "esta semana")
   "mes pasado" -> >= date_trunc('month',current_date) - interval '1 month'
                   AND < date_trunc('month', current_date)
-- DÍA DE LA SEMANA relativo ("el lunes pasado", "el martes de la semana pasada"): calcula desde
-  date_trunc('week', current_date) - interval '7 days' y súmale días con interval
-  (lunes=+0, martes=+1, ... domingo=+6). PROHIBIDO usar % (módulo) sobre date o interval:
-  en PostgreSQL "date - numeric" e "interval % integer" NO existen y la consulta falla.
+- DÍA DE LA SEMANA relativo ("el viernes pasado", "el martes de la semana pasada"). NO calcules el
+  desplazamiento por tu cuenta: date_trunc('week', X) devuelve el LUNES de esa semana, así que
+  restar 2 días cae en SÁBADO, no en viernes. Copia literalmente de esta tabla, que ya está
+  verificada (todas restan sobre el lunes de la semana ACTUAL):
+    lunes     -> fecha_hora_inicio::date = date_trunc('week', current_date) - interval '7 days'
+    martes    -> ... - interval '6 days'
+    miércoles -> ... - interval '5 days'
+    jueves    -> ... - interval '4 days'
+    viernes   -> ... - interval '3 days'
+    sábado    -> ... - interval '2 days'
+    domingo   -> ... - interval '1 day'
+  Antes de responder comprueba el día contra la tabla: un día de más o de menos devuelve el
+  conteo de otra jornada, un número creíble pero equivocado que nadie detectaría.
+  PROHIBIDO usar % (módulo) sobre date o interval: en PostgreSQL "date - numeric" e
+  "interval % integer" NO existen y la consulta falla.
 - PORCENTAJES Y RATIOS — error clásico, revísalo dos veces antes de responder: si mides "qué
   porcentaje son X", el WHERE NO puede contener la condición X. Si la pones ahí, numerador y
   denominador quedan sobre el MISMO conjunto y el resultado es 100% siempre, pase lo que pase.
