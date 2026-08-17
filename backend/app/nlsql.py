@@ -39,6 +39,10 @@ FECHA EXPLÍCITA ("el 22 de julio de 2026", "del 1 al 15 de junio") SÍ es un pe
 trates como ambigua solo porque no coincide con las 5 opciones típicas (Hoy/Ayer/Últimos 7
 días/Este mes/Todo el histórico); esas son sugerencias para cuando el usuario NO dio fecha, no una
 lista cerrada de períodos válidos.
+También marca necesita_aclaracion=true cuando la MÉTRICA es vaga aunque el período sea claro:
+"¿qué tan efectivos fuimos hoy?", "¿cómo nos fue esta semana?", "¿cómo vamos?". Palabras como
+efectividad, rendimiento, desempeño o "cómo vamos" pueden significar contactabilidad, conversión
+a venta, volumen o costo — pregunta CUÁL en vez de elegir una por tu cuenta.
 Si el usuario ya incluyó "Aclaraciones del usuario", NO vuelvas a preguntar (necesita_aclaracion=false).
 Cuando necesita_aclaracion=true, devuelve HASTA 3 preguntas para aclarar (máx 3) e incluye SIEMPRE:
   1. PERÍODO, con opciones adecuadas (p.ej. "Hoy","Ayer","Últimos 7 días","Este mes","Todo el histórico").
@@ -47,6 +51,34 @@ Cuando necesita_aclaracion=true, devuelve HASTA 3 preguntas para aclarar (máx 3
   3. (opcional) una tercera si hay ambigüedad real ("¿Por agente o por campaña?", "¿Qué métrica?"...).
 Cada pregunta = {{"pregunta": "...", "clave": "snake_case", "opciones": ["...","..."]}}.
 En ese caso NO generes SQL.
+
+VOCABULARIO DEL CALL CENTER — usa SIEMPRE estas equivalencias, no inventes etiquetas. Los valores
+válidos de cada enum están en el esquema de arriba; NUNCA uses uno que no aparezca ahí.
+MAPEO OBLIGATORIO de sinónimos -> estado_llamada. Es la fuente de verdad: aplícalo LITERALMENTE.
+Varias de estas frases suenan parecidas entre sí, pero cada bloque va a UN valor y solo uno; dos
+preguntas del mismo bloque DEBEN producir exactamente el mismo número.
+  'no_contesta' <- "perdida(s)", "no contestada(s)", "no atendida(s)", "no contestamos",
+                   "se cayó"/"se cayeron", "se colgó"/"se colgaron", "timbró y nadie contestó",
+                   "nadie respondió"
+  'abandonada'  <- SOLO si dicen literalmente "abandonada(s)", "abandono", "tasa de abandono",
+                   "se cansó de esperar", "colgó en la cola"/"colgó esperando"
+  'fallida'     <- SOLO si dicen "fallida(s)", "error técnico", "falló la línea"
+  'contestada'  <- "atendida(s)", "contestada(s)", "conectada(s)", "efectiva(s)"
+OJO: en este negocio "se cayó la llamada" y "se colgaron" significan que NO se contestó
+('no_contesta'); NO significan que el cliente abandonó la cola ('abandonada') ni que hubo un
+fallo técnico ('fallida'). No los intercambies.
+Si de verdad quieren "todo lo que no se contestó" (agrupando no_contesta + buzon + ocupado +
+abandonada + fallida), usa estado_llamada != 'contestada' y dilo explícito en la descripción.
+- "recibidas", "entrantes", "entraron", "nos llamaron" -> AÑADE direccion = 'entrante'.
+  "salientes", "marcadas", "llamamos" -> direccion = 'saliente'. Si la pregunta implica dirección,
+  filtrar por ella es OBLIGATORIO.
+- "contactabilidad" = contestadas / total de llamadas (la vista v_kpi_campania_dia ya trae
+  pct_contacto ya calculado).
+- DURACIONES, no las confundas ni las sumes entre sí: duracion_seg es SOLO conversación real;
+  espera_seg es tiempo en cola (solo tiene valor en abandonadas); timbrado_seg es timbrado;
+  acw_seg es trabajo posterior. "tiempo hablado"/"conversación real" -> duracion_seg.
+- Una llamada con duracion_seg = 0 nunca conectó (buzón, ocupado, abandonada). Para "llamadas
+  cortas" filtra duracion_seg > 0 AND duracion_seg < N, y aclara ese criterio en la descripción.
 
 PASO 2 — Si NO necesita aclaración (o ya hay aclaraciones), genera el reporte con estas reglas:
 - Solo una consulta SELECT/WITH de SOLO LECTURA, con columnas/tablas que existan. Prefiere las VISTA v_*.
@@ -57,6 +89,28 @@ PASO 2 — Si NO necesita aclaración (o ya hay aclaraciones), genera el reporte
   fecha_hora_inicio::date = 'YYYY-MM-DD'; si da un rango explícito, usa
   fecha_hora_inicio::date BETWEEN 'YYYY-MM-DD' AND 'YYYY-MM-DD'.
   El costo está en COP. Incluye ORDER BY y LIMIT (máx 200).
+- SEMANA/MES CALENDARIO vs VENTANA MÓVIL — no los confundas:
+  "esta semana" -> fecha_hora_inicio >= date_trunc('week', current_date)  (lunes a hoy)
+  "la semana pasada" -> >= date_trunc('week',current_date) - interval '7 days'
+                        AND < date_trunc('week', current_date)
+  "últimos 7 días" -> >= current_date - 6  (ventana móvil; NO es lo mismo que "esta semana")
+  "mes pasado" -> >= date_trunc('month',current_date) - interval '1 month'
+                  AND < date_trunc('month', current_date)
+- DÍA DE LA SEMANA relativo ("el lunes pasado", "el martes de la semana pasada"): calcula desde
+  date_trunc('week', current_date) - interval '7 days' y súmale días con interval
+  (lunes=+0, martes=+1, ... domingo=+6). PROHIBIDO usar % (módulo) sobre date o interval:
+  en PostgreSQL "date - numeric" e "interval % integer" NO existen y la consulta falla.
+- PORCENTAJES Y RATIOS — error clásico, revísalo dos veces antes de responder: si mides "qué
+  porcentaje son X", el WHERE NO puede contener la condición X. Si la pones ahí, numerador y
+  denominador quedan sobre el MISMO conjunto y el resultado es 100% siempre, pase lo que pase.
+  La condición X va ÚNICAMENTE dentro del FILTER. Protege el denominador con nullif(...,0).
+  MAL (da 100% siempre):
+    select count(*) filter (where estado_llamada='abandonada')*100.0/nullif(count(*),0)
+    from llamadas where estado_llamada='abandonada'
+  BIEN (sin WHERE de esa condición, el denominador es el total real):
+    select count(*) filter (where estado_llamada='abandonada')*100.0/nullif(count(*),0) as pct,
+           avg(espera_seg) filter (where estado_llamada='abandonada') as seg_prom
+    from llamadas
 - `eje_x` SIEMPRE columna categórica/temporal, NUNCA una métrica ni el nombre de la entidad comparada.
 - COINCIDENCIA DE NOMBRES: nunca uses igualdad exacta; normaliza con translate() para ignorar tildes y
   compara el nombre completo por PALABRAS con LIKE (términos en minúscula y sin tildes; el orden no importa).
@@ -66,6 +120,9 @@ PASO 2 — Si NO necesita aclaración (o ya hay aclaraciones), genera el reporte
   '%herrera%' and nom like '%luna%') as "Sofía Herrera Luna", ... from llamadas l join n on n.id=l.agente_id
   group by l.estado_llamada  -> eje_x="estado_llamada", series=[nombres...], tipo_grafico="bar".
 - "pie" SOLO para la distribución de UNA sola serie sobre categorías (nunca para comparar entidades).
+- UNIDADES en los alias: conserva siempre el sufijo de unidad para que el lector no la adivine
+  (..._seg para segundos, ..._cop para pesos, ..._pct para porcentajes). Ej: avg(espera_seg) as
+  espera_promedio_seg, NO "espera_promedio" a secas.
 - Incluye un "resumen": frase corta de lo que se consulta (métrica · período · visualización).
 - Perfil del usuario: {perfil}. {foco}
 
@@ -90,9 +147,15 @@ REGLAS ESTRICTAS (obligatorias):
 - Si algo que se preguntó NO está en los datos (por ejemplo, una entidad o métrica que no aparece
   en el resultado), dilo explícitamente ("no hay datos de X en el resultado") en vez de suponer.
 - No menciones entidades que no estén presentes en los datos.
-- Si TODOS los valores son 0, advierte que es probable que los filtros (nombres o fechas) no
-  coincidan con los datos y sugiere verificar el nombre o la fecha, en vez de afirmar que no hubo
-  actividad.
+- NUNCA inventes ni conviertas UNIDADES. Un valor solo está en segundos si la columna lo dice
+  (sufijo _seg); en pesos si dice _cop o es un monto/costo; en porcentaje si dice _pct o pct_.
+  Si el nombre de la columna no indica la unidad, di la cifra sin unidad en vez de suponerla.
+  Confundir segundos con minutos u horas es un error grave: no lo hagas.
+- Si TODOS los valores son 0 (o no hay filas), NO afirmes como un hecho que hubo cero actividad,
+  pero TAMPOCO des por sentado que los filtros están mal. Presenta las dos lecturas posibles:
+  (a) que en ese período realmente no hubo actividad todavía —muy normal cuando se pregunta por
+  "hoy" y la jornada apenas empieza—, o (b) que algún filtro (un nombre, una fecha) no coincide
+  con los datos. Deja claro cuál habría que verificar para distinguirlas.
 
 Responde SOLO un JSON:
 {{
@@ -161,6 +224,22 @@ async def responder(
     # Si la pregunta es ambigua y aún no hay aclaraciones, devolvemos las preguntas.
     if plan.get("necesita_aclaracion") and not aclaraciones:
         return {"tipo": "aclaracion", "preguntas": plan.get("preguntas", [])[:3]}
+
+    # El usuario YA respondió las aclaraciones pero el modelo insiste en preguntar y no manda
+    # SQL. Sin esto el guard falla con "La consulta está vacía" y el usuario ve un error después
+    # de haber contestado el formulario -que es justo lo que no debe pasar-.
+    if not plan.get("sql"):
+        mensajes_planner.append({"role": "assistant", "content": json.dumps(plan, ensure_ascii=False)})
+        mensajes_planner.append(
+            {
+                "role": "user",
+                "content": "Ya tienes la información necesaria: usa las aclaraciones que te di y, si "
+                "algo sigue sin estar definido, asume la interpretación más razonable y decláralo en "
+                "la descripción. NO vuelvas a pedir aclaración; responde el JSON con la clave sql ya "
+                "construida.",
+            }
+        )
+        plan = await _chat(ocfg, mensajes_planner)
 
     sql = plan.get("sql", "")
     sql_guarded = guard(sql)  # lanza SQLError si no es SELECT válido
